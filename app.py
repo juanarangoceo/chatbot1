@@ -8,14 +8,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configurar API Key de OpenAI de forma segura
-openai.api_key = os.getenv("OPENAI_API_KEY")
+api_key = os.getenv("OPENAI_API_KEY")
 
-# Verificar si la API Key se cargó correctamente
-if not openai.api_key:
+if not api_key:
     print("❌ ERROR: No se encontró la API Key en el archivo .env")
     exit(1)
 
-print(f"✅ API Key detectada correctamente: {openai.api_key[:5]}...")  # Solo imprime los primeros caracteres
+print(f"✅ API Key detectada correctamente: {api_key[:5]}...")  # Solo imprime los primeros caracteres
+
+# Inicializar cliente de OpenAI
+client = openai.OpenAI(api_key=api_key)
 
 # Inicializar Flask
 app = Flask(__name__)
@@ -44,15 +46,14 @@ def generar_respuesta_ia(mensaje):
     try:
         print(f"🔄 Enviando mensaje a OpenAI: {mensaje}")
 
-        # Llamada a OpenAI con el cliente adecuado
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Eres un asistente de ventas eficiente."},
                 {"role": "user", "content": mensaje}
             ]
         )
-        respuesta = response['choices'][0]['message']['content'].strip()
+        respuesta = response.choices[0].message.content.strip()
         print(f"✅ Respuesta de OpenAI: {respuesta}")
         return respuesta
 
