@@ -3,21 +3,20 @@ import openai
 from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
 from dotenv import load_dotenv
+from prompt_ventas import PROMPT_VENTAS_CAFETERA  # Importamos el prompt
 
 # Cargar variables de entorno desde .env
 load_dotenv()
 
-# Configurar API Key de OpenAI de forma segura
-api_key = os.getenv("OPENAI_API_KEY")
+# Configurar API Key de OpenAI
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-if not api_key:
+# Verificar si la API Key se cargó correctamente
+if not openai.api_key:
     print("❌ ERROR: No se encontró la API Key en el archivo .env")
     exit(1)
 
-print(f"✅ API Key detectada correctamente: {api_key[:5]}...")  # Solo imprime los primeros caracteres
-
-# Inicializar cliente de OpenAI
-client = openai.OpenAI(api_key=api_key)
+print(f"✅ API Key detectada correctamente: {openai.api_key[:5]}...")
 
 # Inicializar Flask
 app = Flask(__name__)
@@ -42,26 +41,27 @@ def whatsapp():
     return str(resp)
 
 def generar_respuesta_ia(mensaje):
-    """Genera una respuesta usando OpenAI GPT con la nueva API."""
+    """Genera una respuesta usando OpenAI GPT con el prompt de ventas especializado."""
     try:
         print(f"🔄 Enviando mensaje a OpenAI: {mensaje}")
 
-        response = client.chat.completions.create(
+        # Llamada a OpenAI con el prompt de ventas especializado
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Eres un asistente de ventas eficiente."},
+                {"role": "system", "content": PROMPT_VENTAS_CAFETERA},  # Usamos el prompt importado
                 {"role": "user", "content": mensaje}
             ]
         )
-        respuesta = response.choices[0].message.content.strip()
+        respuesta = response['choices'][0]['message']['content'].strip()
         print(f"✅ Respuesta de OpenAI: {respuesta}")
         return respuesta
 
-    except openai.AuthenticationError:
+    except openai.error.AuthenticationError:
         print("❌ ERROR: La API Key de OpenAI es incorrecta o ha caducado.")
         return "Error: La API Key de OpenAI no es válida."
 
-    except openai.OpenAIError as e:
+    except openai.error.OpenAIError as e:
         print(f"⚠️ ERROR con OpenAI: {e}")
         return "Lo siento, hubo un problema con el servicio de OpenAI."
 
