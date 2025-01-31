@@ -43,24 +43,24 @@ def generar_respuesta_ia(mensaje):
     """Genera una respuesta usando OpenAI GPT con la nueva API."""
     try:
         print(f"🔄 Enviando mensaje a OpenAI: {mensaje}")
-        client = openai.OpenAI()  # NUEVA FORMA DE LLAMAR A OpenAI en v1.0.0+
 
-        response = client.chat.completions.create(
+        # Llamada a OpenAI con el cliente adecuado
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Eres un asistente de ventas eficiente."},
                 {"role": "user", "content": mensaje}
             ]
         )
-        respuesta = response.choices[0].message.content.strip()
+        respuesta = response['choices'][0]['message']['content'].strip()
         print(f"✅ Respuesta de OpenAI: {respuesta}")
         return respuesta
 
-    except openai.AuthenticationError:
+    except openai.error.AuthenticationError:
         print("❌ ERROR: La API Key de OpenAI es incorrecta o ha caducado.")
         return "Error: La API Key de OpenAI no es válida."
 
-    except openai.OpenAIError as e:
+    except openai.error.OpenAIError as e:
         print(f"⚠️ ERROR con OpenAI: {e}")
         return "Lo siento, hubo un problema con el servicio de OpenAI."
 
