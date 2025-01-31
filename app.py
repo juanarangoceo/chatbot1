@@ -3,7 +3,12 @@ import openai
 from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
 from dotenv import load_dotenv
-from prompt_ventas import PROMPT_VENTAS_CAFETERA  # Importamos el prompt
+
+try:
+    from prompt_ventas import PROMPT_VENTAS_CAFETERA  # Importamos el prompt
+except ImportError:
+    print("⚠️ ERROR: No se pudo importar el prompt de ventas. Verifica que prompt_ventas.py existe.")
+    PROMPT_VENTAS_CAFETERA = "Eres un asistente de ventas experto en cafeteras espresso."
 
 # Cargar variables de entorno desde .env
 load_dotenv()
@@ -57,11 +62,7 @@ def generar_respuesta_ia(mensaje):
         print(f"✅ Respuesta de OpenAI: {respuesta}")
         return respuesta
 
-    except openai.error.AuthenticationError:
-        print("❌ ERROR: La API Key de OpenAI es incorrecta o ha caducado.")
-        return "Error: La API Key de OpenAI no es válida."
-
-    except openai.error.OpenAIError as e:
+    except openai.OpenAIError as e:
         print(f"⚠️ ERROR con OpenAI: {e}")
         return "Lo siento, hubo un problema con el servicio de OpenAI."
 
